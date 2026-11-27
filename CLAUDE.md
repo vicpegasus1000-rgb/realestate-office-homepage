@@ -34,6 +34,7 @@
 
 - 공개 주소: https://realestate-office-homepage-s79d.vercel.app (Vercel 팀 `tujawoodeungsaeng`, 프로젝트 `realestate-office-homepage-s79d`)
 - GitHub 공개 저장소 `vicpegasus1000-rgb/realestate-office-homepage` 와 연결됨 (커밋 메일은 GitHub 가림 메일)
+- GitHub 비밀 자동 감시(secret scanning·push protection) 켜짐. 개인 메모(`pegasus_skill_*`)는 .gitignore 로 제외
 - Framework Preset: **Other**, Build/Output 설정은 비워 둠
 - Environment Variables (Vercel 화면에서 직접 입력): `DATA_GO_KR_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
 - 이후 GitHub 에 올리면(push) 자동으로 다시 배포됨
