@@ -38,6 +38,8 @@
 - Framework Preset: **Other**, Build/Output 설정은 비워 둠
 - Environment Variables (Vercel 화면에서 직접 입력): `DATA_GO_KR_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
 - 이후 GitHub 에 올리면(push) 자동으로 다시 배포됨
+- 실거래가 저장본 `api/_snapshot.json` (2026-11-27 22:23, 134건): 키가 없거나 국토부 장애 때 보여 줌. 새로 만들려면 `market_cache.json` 을 복사하고 source 끝에 "저장본", "snapshot": true
+- 예전 저장소 `realestate-office-homepage-pegasus` (비공개, 예전 Gmail 기록 있음) — 쓰지 않음, 지워도 됨
 - Vercel 에서는 문의 횟수 제한이 함수마다 따로라 느슨함. 실거래가는 Vercel 앞단이 6시간 저장(s-maxage)
 - 이 PC 에 Node.js·Vercel CLI 없음 (웹 화면으로 연결)
 - 환경변수를 넣거나 바꾼 뒤에는 Vercel 에서 Redeploy 해야 반영됨
