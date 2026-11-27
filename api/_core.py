@@ -43,8 +43,12 @@ if not MARKET_KEY and _MCFG.exists():
         pass
 MARKET_KEY = urllib.parse.unquote(MARKET_KEY.strip())  # 인코딩 키·디코딩 키 둘 다 받기
 MARKET_URL = os.environ.get("MARKET_API_URL", "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev")  # 상세 자료 API (받은 키가 이쪽용)
-MARKET_LAWD = "11740"            # 서울 강동구
-MARKET_APT = "올림픽파크포레온"   # 관리 단지
+# ★ 관리 단지 목록 (국토부 자료의 단지 이름 그대로, 시군구 코드). 늘리려면 여기에 한 줄 추가
+COMPLEXES = [
+    {"apt": "올림픽파크포레온", "lawd": "11740"},   # 서울 강동구
+    {"apt": "신림현대", "lawd": "11620"},           # 서울 관악구 (신림현대성우·신림2차현대와 구분: 이름이 정확히 같은 것만)
+]
+MARKET_APT = COMPLEXES[0]["apt"]
 MARKET_MONTHS = 12
 MARKET_TTL = 6 * 3600            # 6시간마다 새로 가져옴
 SNAPSHOT = Path(__file__).with_name("_snapshot.json")  # 실제 거래 저장본 (공개 자료). 키가 없거나 국토부 장애 때 보여 줌
@@ -110,11 +114,12 @@ def _recent_months(n):
     return out[::-1]  # 오래된 달 → 최근 달
 
 
-def _fetch_month(ymd):
-    """한 달치 강동구 거래 중 관리 단지 거래만 돌려줌."""
-    rows, page = [], 1
+def _fetch_month(job):
+    """(시군구, 달) 한 묶음 → {단지 이름: [거래...]} (관리 단지만, 해제 거래 제외)"""
+    lawd, ymd, names = job
+    out, page = {n: [] for n in names}, 1
     while True:
-        q = urllib.parse.urlencode({"serviceKey": MARKET_KEY, "LAWD_CD": MARKET_LAWD, "DEAL_YMD": ymd,
+        q = urllib.parse.urlencode({"serviceKey": MARKET_KEY, "LAWD_CD": lawd, "DEAL_YMD": ymd,
                                     "pageNo": page, "numOfRows": 1000})
         for attempt in range(3):  # 국토부 서버가 가끔 503 을 내므로 잠깐 쉬고 다시
             try:
@@ -135,10 +140,11 @@ def _fetch_month(ymd):
         items = root.findall(".//item")
         for it in items:
             g = lambda k: (it.findtext(k) or "").strip()
-            if g("aptNm").replace(" ", "") != MARKET_APT or g("cdealType") == "O":  # O = 해제된 거래
+            name = g("aptNm").replace(" ", "")
+            if name not in out or g("cdealType") == "O":  # O = 해제된 거래
                 continue
             try:
-                rows.append({
+                out[name].append({
                     "date": f"{int(g('dealYear'))}-{int(g('dealMonth')):02d}-{int(g('dealDay')):02d}",
                     "area": round(float(g("excluUseAr")), 2),
                     "floor": int(g("floor") or 0),
@@ -148,20 +154,18 @@ def _fetch_month(ymd):
                 continue
         total = int(root.findtext(".//totalCount") or 0)
         if page * 1000 >= total or not items:
-            return rows
+            return out
         page += 1
 
 
-def _build_market():
-    months = _recent_months(MARKET_MONTHS)
-    deals = []
-    with ThreadPoolExecutor(max_workers=4) as ex:  # 12달을 동시에 (Vercel 함수 시간 안에 끝나게)
-        for rows in ex.map(_fetch_month, months):
-            deals += rows
-    # 면적대별로 묶기 (전용 84.99 → 84㎡)
+SOURCE = "국토교통부 아파트 매매 실거래가(상세)"
+
+
+def _summarize(apt, deals, months, updated):
+    """한 단지 거래 → 면적별 월 평균·월별 거래·최근 거래"""
     groups = {}
     for d in deals:
-        groups.setdefault(f"{int(d['area'])}㎡", []).append(d)
+        groups.setdefault(f"{int(d['area'])}㎡", []).append(d)  # 전용 84.99 → 84㎡
     out = {}
     for name, ds in sorted(groups.items(), key=lambda kv: -len(kv[1])):
         avg, by_month = [], []
@@ -172,13 +176,56 @@ def _build_market():
             by_month.append([[d["date"], f"{d['area']}㎡ · {d['floor']}층", d["price"]] for d in md])
         out[name] = {"count": len(ds), "months": avg, "byMonth": by_month,
                      "trades": [[d["date"], f"{d['area']}㎡ · {d['floor']}층", d["price"]] for d in ds[:10]]}
-    return {"apt": MARKET_APT, "labels": [f"{int(m[4:])}월" for m in months],
+    return {"apt": apt, "labels": [f"{int(m[4:])}월" for m in months],
             "fullLabels": [f"{m[:4]}년 {int(m[4:])}월" for m in months], "areas": out,
-            "updated": time.strftime("%Y-%m-%d %H:%M", kst()), "source": "국토교통부 아파트 매매 실거래가(상세)"}
+            "updated": updated, "source": SOURCE}
+
+
+def _build_market():
+    months = _recent_months(MARKET_MONTHS)
+    by_lawd = {}
+    for c in COMPLEXES:
+        by_lawd.setdefault(c["lawd"], []).append(c["apt"].replace(" ", ""))
+    jobs = [(lawd, ymd, names) for lawd, names in by_lawd.items() for ymd in months]
+    deals = {c["apt"].replace(" ", ""): [] for c in COMPLEXES}
+    with ThreadPoolExecutor(max_workers=6) as ex:  # 시군구×12달을 동시에 (Vercel 함수 시간 안에 끝나게)
+        for res in ex.map(_fetch_month, jobs):
+            for name, rows in res.items():
+                deals[name] += rows
+    updated = time.strftime("%Y-%m-%d %H:%M", kst())
+    return {"complexes": [_summarize(c["apt"], deals[c["apt"].replace(" ", "")], months, updated) for c in COMPLEXES],
+            "updated": updated, "source": SOURCE}
+
+
+def _load(path):
+    """저장 파일 읽기 (예전 한 단지 모양도 받아 줌)"""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if "complexes" not in data:
+        data = {"complexes": [data], "updated": data.get("updated"), "source": data.get("source"), "snapshot": data.get("snapshot")}
+    return data
+
+
+def _complete(data):
+    """관리 단지가 빠져 있으면 저장본으로 채우고, 그래도 없으면 '준비 중' 표시"""
+    have = {c.get("apt") for c in data["complexes"]}
+    snap = _load(SNAPSHOT) if SNAPSHOT.exists() else None
+    snap_map = {c.get("apt"): c for c in (snap or {}).get("complexes", [])}
+    out = []
+    for c in COMPLEXES:
+        found = next((x for x in data["complexes"] if x.get("apt") == c["apt"]), None)
+        if found is None and c["apt"] in snap_map:
+            found = dict(snap_map[c["apt"]], snapshot=True)
+        if found is None:
+            found = {"apt": c["apt"], "areas": {}, "pending": True}
+        out.append(found)
+    return dict(data, complexes=out)
 
 
 def get_market():
-    """캐시(6시간) → 새로 조회 → 실패하면 마지막 저장본."""
+    """캐시(6시간) → 새로 조회 → 실패하면 마지막 저장 → 공개 저장본. 항상 관리 단지 전체를 돌려줌."""
     with _market_lock:
         if _market["data"] and time.time() - _market["at"] < MARKET_TTL:
             return _market["data"]
@@ -197,20 +244,14 @@ def get_market():
                     why = f"{e.code} (403 이면 키가 아직 등록 중이거나 이 API 활용신청이 안 됨)"
                 _market["fail_at"] = time.time()
                 print("[오류] 실거래가 조회 실패:", type(e).__name__, why, flush=True)
-        if MARKET_CACHE.exists():
-            try:
-                data = json.loads(MARKET_CACHE.read_text(encoding="utf-8"))
+        for path in (MARKET_CACHE, SNAPSHOT):
+            data = _load(path) if path.exists() else None
+            if data:
+                data = _complete(data)
+                if path == SNAPSHOT:
+                    data["snapshot"] = True
                 _market.update(at=time.time() - MARKET_TTL + 600, data=data)  # 10분 뒤 다시 시도
                 return data
-            except ValueError:
-                pass
-        if SNAPSHOT.exists():
-            try:
-                data = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
-                _market.update(at=time.time() - MARKET_TTL + 600, data=data)  # 10분 뒤 다시 시도
-                return data
-            except ValueError:
-                pass
         return None
 
 

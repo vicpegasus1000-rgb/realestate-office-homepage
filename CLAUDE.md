@@ -28,7 +28,8 @@
   ```
   → http://127.0.0.1:8000 . 환경변수가 없으면 같은 폴더 `telegram_config.json`(token, chat_id)을 읽음. 둘 다 없으면 문의를 서버 창에만 출력.
 - 실거래가 인증키: data.go.kr 에서 "국토교통부_아파트 매매 실거래가 상세 자료" 활용신청 → 마이페이지의 일반 인증키. 환경변수 대신 `market_config.json` `{"service_key": "..."}` 도 됨. 키가 없으면 저장본, 그것도 없으면 예시 숫자가 보임
-- 단지 바꾸기: `server.py` 의 `MARKET_LAWD`(시군구 코드), `MARKET_APT`(국토부 자료의 단지 이름)
+- 관리 단지 추가: `api/_core.py` 의 `COMPLEXES` (국토부 자료의 단지 이름, 시군구 코드) + `index.html` 의 `APT_MAPS`(지도 위치·경계) + `LISTINGS`(매물 카드, `complex` 에 단지 이름)
+- 지금 관리 단지: 올림픽파크포레온(강동구 11740), 신림현대(관악구 11620)
 
 ## 인터넷 공개 (Vercel)
 

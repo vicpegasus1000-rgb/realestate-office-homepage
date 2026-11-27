@@ -134,7 +134,8 @@ dialog[open] { animation: pop .22s ease-out; }
 .chart-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
 .chart-top .big { font-family: var(--serif); font-size: 40px; font-weight: 700; color: var(--teal-deep); line-height: 1.1; }
 .chart-top .chg { font-size: 15px; color: var(--muted); }
-.chart-top .field { width: auto; min-width: 210px; }
+.chart-top .field { width: auto; min-width: 150px; }
+.sel-row { display: flex; gap: 8px; flex-wrap: wrap; }
 #chart { width: 100%; height: auto; }
 .chart-box { position: relative; }
 /* 단지 지도 */
@@ -349,7 +350,7 @@ footer b { color: #fff; font-family: var(--serif); font-size: 18px; }
               <div class="big" id="mNow"></div>
               <div class="chg" id="mChg"></div>
             </div>
-            <div><label class="sr" for="mSel">단지 고르기</label><select id="mSel" class="field"></select></div>
+            <div class="sel-row"><label class="sr" for="cSel">단지 고르기</label><select id="cSel" class="field"><option>올림픽파크포레온</option><option>신림현대</option></select><label class="sr" for="mSel">면적 고르기</label><select id="mSel" class="field"></select></div>
           </div>
           <div class="chart-box">
             <svg id="chart" viewBox="0 0 640 280" role="img" aria-label="최근 12개월 평균 거래가 그래프. 점에 마우스를 올리거나 누르면 그 달 거래가 보입니다"></svg>
@@ -373,8 +374,8 @@ footer b { color: #fff; font-family: var(--serif); font-size: 18px; }
           <span class="am-label" id="amLabel">올림픽파크포레온</span>
         </button>
         <div class="am-card" id="amCard" role="dialog" aria-label="올림픽파크포레온 실거래가" hidden>
-          <div class="am-head"><b>올림픽파크포레온</b><button type="button" id="amClose" aria-label="닫기">×</button></div>
-          <div class="am-sub">서울 강동구 양재대로 1300 · 2024년 입주</div>
+          <div class="am-head"><b id="amTitle">올림픽파크포레온</b><button type="button" id="amClose" aria-label="닫기">×</button></div>
+          <div class="am-sub" id="amSub">서울 강동구 양재대로 1300 · 2024년 입주</div>
           <table><thead><tr><th>전용</th><th>최근 거래</th><th class="num">가격</th></tr></thead><tbody id="amRows"></tbody></table>
           <div class="am-foot" id="amFoot"></div>
         </div>
@@ -745,7 +746,7 @@ footer b { color: #fff; font-family: var(--serif); font-size: 18px; }
     <div class="item-price" id="dPrice"></div>
     <dl class="facts" id="dFacts"></dl>
     <p class="desc" id="dDesc"></p>
-    <div class="btns"><a href="#contact" class="btn btn-solid" id="dAsk">이 매물 상담 신청</a><a href="tel:0212345678" class="btn btn-ghost">전화 문의</a></div>
+    <div class="btns"><a href="#contact" class="btn btn-solid" id="dAsk">이 매물 상담 신청</a><a href="#market" class="btn btn-ghost" id="dMarket" hidden>실거래가 보기</a><a href="tel:0212345678" class="btn btn-ghost">전화 문의</a></div>
   </div>
 </dialog>
 
@@ -753,6 +754,9 @@ footer b { color: #fff; font-family: var(--serif); font-size: 18px; }
 'use strict';
 /* ★ 매물: 이 배열만 고치면 됩니다. price 는 만원 단위 (월세는 보증금). */
 var LISTINGS = [
+  /* ★ 관리 단지 매물 (complex 는 시세·지도와 이어지는 단지 이름. price 가 null 이면 '가격 상담') */
+  { id: 11, type: 'apt', deal: '매매', complex: '올림픽파크포레온', title: '올림픽파크포레온', place: '강동구 둔촌동 · 2024년 입주', price: null, rent: 0, area: '전용 29~134㎡', rooms: '1만 2천여 세대 대단지', move: '상담', tags: '관리매물 신축 대단지 둔촌동 포레온', desc: '2024년 입주한 대단지 신축입니다. 면적별 최근 실거래가는 아래 시세에서 바로 볼 수 있습니다. 매물 조건은 상담으로 안내합니다.' },
+  { id: 10, type: 'apt', deal: '매매', complex: '신림현대', title: '신림현대', place: '관악구 서림동 · 1993년 준공', price: null, rent: 0, area: '60㎡ 이하 · 60~85㎡ · 85~135㎡', rooms: '1,634세대 · 현대산업개발', move: '상담', tags: '관리매물 신림 서림동 대단지 신성초', desc: '1,634세대 대단지(1993년 준공, 현대산업개발 시공)입니다. 단지 앞 신성초등학교, 서림동주민센터와 가깝습니다. 매물 조건은 상담으로 안내합니다.' },
   { id: 1, type: 'apt', deal: '매매', title: '예시마을 1단지 84㎡ 남향', place: '역삼동 · 15층 중 9층', price: 98000, rent: 0, area: '84㎡ (공급 112㎡)', rooms: '방 3 · 욕실 2', move: '협의', tags: '남향 역세권 올수리', desc: '강남역까지 걸어서 5분. 2024년에 주방과 욕실을 고쳤습니다. 앞 동과 거리가 넓어 하루 종일 볕이 듭니다.' },
   { id: 2, type: 'apt', deal: '전세', title: '예시파크 59㎡ 신축', place: '역삼동 · 25층 중 12층', price: 52000, rent: 0, area: '59㎡ (공급 80㎡)', rooms: '방 3 · 욕실 2', move: '즉시', tags: '신축 초등학교 즉시입주', desc: '2025년 입주 단지. 단지 안에 초등학교가 있고 지하주차장이 엘리베이터와 바로 이어집니다.' },
   { id: 3, type: 'villa', deal: '매매', title: '수익형 다가구 주택', place: '논현동 · 지상 4층', price: 135000, rent: 0, area: '대지 198㎡', rooms: '총 8세대', move: '협의', tags: '수익형 주인세대 임대', desc: '주인 세대를 포함해 8세대. 현재 임대 현황표는 상담 때 보여 드립니다.' },
@@ -782,6 +786,7 @@ function won(v) {
   return eok ? (eok + '억' + (s ? ' ' + s : '')) : s || '0';
 }
 function priceText(x) {
+  if (x.price == null) return x.deal + ' · 가격 상담';
   if (x.deal === '월세') return '보증금 ' + won(x.price) + ' / 월 ' + x.rent + '만';
   return x.deal + ' ' + won(x.price);
 }
@@ -821,7 +826,7 @@ function render() {
   var list = LISTINGS.filter(function (x) {
     if (t && x.type !== t) return false;
     if (d && x.deal !== d) return false;
-    if (p.length === 2 && (x.price < p[0] || x.price > p[1])) return false;
+    if (p.length === 2 && (x.price == null || x.price < p[0] || x.price > p[1])) return false;
     if (q && (x.title + x.place + x.tags + x.desc).toLowerCase().indexOf(q) < 0) return false;
     return true;
   });
@@ -841,7 +846,7 @@ function render() {
     body.append(el('div', 'item-meta', TYPE_NAME[x.type] + ' / ' + x.place));
     body.append(el('div', 'item-title', x.title));
     var pr = el('div', 'item-price');
-    pr.append(el('span', 'deal', x.deal), document.createTextNode(x.deal === '월세' ? won(x.price) + ' / ' + x.rent + '만' : won(x.price)));
+    pr.append(el('span', 'deal', x.deal), document.createTextNode(x.price == null ? '가격 상담' : x.deal === '월세' ? won(x.price) + ' / ' + x.rent + '만' : won(x.price)));
     body.append(pr);
     b.append(art, body);
     b.addEventListener('click', function () { openDetail(x); });
@@ -864,6 +869,9 @@ function openDetail(x) {
     var w = el('div'); w.append(el('dt', null, kv[0]), el('dd', null, kv[1])); f.append(w);
   });
   document.getElementById('dDesc').textContent = x.desc;
+  var dm = document.getElementById('dMarket');
+  dm.hidden = !x.complex;
+  dm.onclick = function () { dlg.close(); if (x.complex) selectComplex(x.complex); };
   document.getElementById('dAsk').onclick = function () {
     dlg.close();
     var b = document.getElementById('body');
@@ -892,9 +900,18 @@ function svg(tag, attrs, text) {
   return e;
 }
 var MARKET_LABELS = ['12월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월'];
-var MARKET_LIVE = false, MARKET_FULL = null;
+var MARKET_LIVE = false, MARKET_FULL = null, MARKET_ALL = null, CUR_APT = '올림픽파크포레온';
 function drawMarket(name) {
-  var m = MARKET[name], v = m.months;
+  var m = MARKET[name];
+  if (!m) {  /* 이 단지 자료가 아직 없음 */
+    document.getElementById('chart').replaceChildren(); document.getElementById('trades').replaceChildren();
+    document.getElementById('chartTip').hidden = true;
+    document.getElementById('mLabel').textContent = CUR_APT;
+    document.getElementById('mNow').textContent = '자료 준비 중';
+    document.getElementById('mChg').textContent = '국토교통부 실거래가를 가져오는 중입니다. 국토부 서버가 점검 중이면 늦어질 수 있습니다.';
+    return;
+  }
+  var v = m.months;
   var idx = []; v.forEach(function (y, i) { if (y != null) idx.push(i); });   /* 거래 없는 달은 건너뜀 */
   var c = document.getElementById('chart'); c.replaceChildren();
   var tb = document.getElementById('trades'); tb.replaceChildren();
@@ -983,43 +1000,70 @@ function fillMarketSelect() {
 fillMarketSelect();
 mSel.addEventListener('change', function () { drawMarket(mSel.value); });
 
-/* 서버로 열었으면 국토교통부 실거래가(올림픽파크포레온)로 바꿔 그림 */
+/* 서버로 열었으면 국토교통부 실거래가(관리 단지 전체)로 바꿔 그림 */
+var cSel = document.getElementById('cSel');
+function selectComplex(apt) {
+  CUR_APT = apt; cSel.value = apt;
+  if (window.mapGo) window.mapGo(apt);
+  if (!MARKET_ALL) { fillAptCard(); return; }
+  var d = MARKET_ALL[apt] || { areas: {} };
+  var live = {};
+  Object.keys(d.areas || {}).forEach(function (a) {
+    var x = d.areas[a];
+    live['전용 ' + a] = { months: x.months, trades: x.trades, count: x.count, byMonth: x.byMonth };
+  });
+  MARKET = live;
+  if (Array.isArray(d.fullLabels)) MARKET_FULL = d.fullLabels;
+  if (Array.isArray(d.labels) && d.labels.length) MARKET_LABELS = d.labels;
+  document.getElementById('mHead').textContent = apt + ' 실거래가';
+  document.getElementById('mNote').textContent = d.source
+    ? d.source + ' 공개 자료, 최근 12개월 (' + d.updated + ' 기준). 거래 신고는 계약 후 30일 안에 하므로 최근 달은 늘어날 수 있습니다.'
+    : '국토교통부 실거래가를 가져오는 중입니다.';
+  fillMarketSelect();
+  drawMarket(mSel.value);
+  fillAptCard();
+}
+cSel.addEventListener('change', function () { selectComplex(cSel.value); });
 function loadLiveMarket() {
   if (location.protocol === 'file:') return;
   fetch('/api/market').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-    if (!d || !d.areas || !Object.keys(d.areas).length) return;
-    var live = {};
-    Object.keys(d.areas).forEach(function (a) {
-      var x = d.areas[a];
-      live['전용 ' + a] = { months: x.months, trades: x.trades, count: x.count, byMonth: x.byMonth };
-    });
-    MARKET = live; MARKET_LIVE = true;
-    if (Array.isArray(d.fullLabels)) MARKET_FULL = d.fullLabels;
-    if (Array.isArray(d.labels) && d.labels.length) MARKET_LABELS = d.labels;
-    document.getElementById('mHead').textContent = d.apt + ' 실거래가';
-    document.getElementById('mNote').textContent = d.source + ' 공개 자료, 최근 12개월 (' + d.updated + ' 갱신). 거래 신고는 계약 후 30일 안에 하므로 최근 달은 늘어날 수 있습니다.';
-    fillMarketSelect();
-    drawMarket(mSel.value);
-    fillAptCard();
+    if (!d) return;
+    var list = d.complexes || (d.areas ? [d] : []);
+    if (!list.length) return;
+    MARKET_ALL = {}; MARKET_LIVE = true;
+    cSel.replaceChildren();
+    list.forEach(function (c) { MARKET_ALL[c.apt] = c; var o = el('option', null, c.apt); o.value = c.apt; cSel.append(o); });
+    selectComplex(MARKET_ALL[CUR_APT] ? CUR_APT : list[0].apt);
   }).catch(function () {});
 }
 
 /* ── 단지 지도 (오픈스트리트맵 그림 조각을 직접 깔고, 단지 경계·아파트 표시를 위에 그림) ── */
-var APT_MAP = {
-  center: [37.5240, 127.1390],   /* 올림픽파크포레온 (위도, 경도) */
-  pin: [37.5244, 127.1392],
-  /* 단지 경계 (오픈스트리트맵 relation 19585227, 경도·위도) */
-  shape: [
-    [[127.13437,37.52205],[127.1346,37.52145],[127.13889,37.51954],[127.13964,37.52143],[127.13851,37.5217],[127.13884,37.52259],[127.13924,37.5225],[127.14007,37.52251],[127.14074,37.52446],[127.14177,37.52706],[127.14172,37.52723],[127.13699,37.52849],[127.13675,37.52837],[127.1361,37.52669],[127.138,37.52623],[127.13758,37.52518],[127.13788,37.52513],[127.13705,37.523],[127.13492,37.52349],[127.13437,37.52205]],
-    [[127.13965,37.52079],[127.1412,37.52046],[127.14182,37.52043],[127.14282,37.52221],[127.14318,37.52271],[127.1437,37.52379],[127.1446,37.52537],[127.14171,37.52612],[127.13993,37.52132],[127.13965,37.52079]]
-  ],
-  zoom: 16, minZoom: 13, maxZoom: 18
+var APT_MAPS = {
+  '올림픽파크포레온': {
+    center: [37.5240, 127.1390], pin: [37.5244, 127.1392], zoom: 16,
+    info: '서울 강동구 양재대로 1300 · 2024년 입주',
+    /* 단지 경계 (오픈스트리트맵 relation 19585227, 경도·위도) */
+    shape: [
+      [[127.13437,37.52205],[127.1346,37.52145],[127.13889,37.51954],[127.13964,37.52143],[127.13851,37.5217],[127.13884,37.52259],[127.13924,37.5225],[127.14007,37.52251],[127.14074,37.52446],[127.14177,37.52706],[127.14172,37.52723],[127.13699,37.52849],[127.13675,37.52837],[127.1361,37.52669],[127.138,37.52623],[127.13758,37.52518],[127.13788,37.52513],[127.13705,37.523],[127.13492,37.52349],[127.13437,37.52205]],
+      [[127.13965,37.52079],[127.1412,37.52046],[127.14182,37.52043],[127.14282,37.52221],[127.14318,37.52271],[127.1437,37.52379],[127.1446,37.52537],[127.14171,37.52612],[127.13993,37.52132],[127.13965,37.52079]]
+    ]
+  },
+  '신림현대': {
+    center: [37.4750, 126.9321], pin: [37.4752, 126.9320], zoom: 17,
+    info: '서울 관악구 신림로29길 8 · 1993년 준공 · 1,634세대',
+    /* 단지 경계 (오픈스트리트맵 way 439442302) */
+    shape: [
+      [[126.92939,37.47487],[126.9294,37.47444],[126.9307,37.47445],[126.9307,37.47463],[126.93083,37.47474],[126.93135,37.47474],[126.93197,37.47412],[126.93247,37.47412],[126.93265,37.47424],[126.93265,37.47435],[126.93343,37.47437],[126.93354,37.47432],[126.93419,37.47477],[126.9346,37.47486],[126.93464,37.47499],[126.93484,37.47518],[126.93479,37.4755],[126.93466,37.47579],[126.9314,37.47579],[126.9311,37.47548],[126.93082,37.47541],[126.93054,37.47542],[126.92939,37.47487]]
+    ]
+  }
 };
+var APT_MAP = APT_MAPS['올림픽파크포레온'];
+APT_MAP.minZoom = 13; APT_MAP.maxZoom = 18;
 function fillAptCard() {
   var rows = document.getElementById('amRows'); rows.replaceChildren();
   var keys = Object.keys(MARKET);
-  if (!MARKET_LIVE) {
-    var tr = el('tr'), td = el('td', null, location.protocol === 'file:' ? '서버(server.py)로 열면 실거래가가 보입니다.' : '실거래가를 불러오는 중입니다.');
+  if (!MARKET_LIVE || !keys.length) {
+    var tr = el('tr'), td = el('td', null, location.protocol === 'file:' ? '서버(server.py)로 열면 실거래가가 보입니다.' : '국토교통부 실거래가를 가져오는 중입니다.');
     td.colSpan = 3; tr.append(td); rows.append(tr);
     document.getElementById('amFoot').textContent = '';
     return;
@@ -1085,6 +1129,16 @@ function fillAptCard() {
   pin.addEventListener('mouseenter', function () { if (matchMedia('(hover: hover)').matches) openCard(true); });
   document.getElementById('amClose').addEventListener('click', function () { openCard(false); pin.focus(); });
   card.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+  window.mapGo = function (apt) {   /* 다른 단지로 지도 옮기기 */
+    var m = APT_MAPS[apt]; if (!m) return;
+    APT_MAP = m; m.minZoom = 13; m.maxZoom = 18;
+    z = m.zoom; setCenter(m.center[0], m.center[1]); tiles.replaceChildren();
+    document.getElementById('amLabel').textContent = apt;
+    document.getElementById('amTitle').textContent = apt;
+    document.getElementById('amSub').textContent = m.info;
+    box.setAttribute('aria-label', apt + ' 위치 지도'); card.setAttribute('aria-label', apt + ' 실거래가');
+    openCard(false); draw();
+  };
   function zoomTo(nz) {
     nz = Math.max(APT_MAP.minZoom, Math.min(APT_MAP.maxZoom, nz)); if (nz === z) return;
     var f = Math.pow(2, nz - z); cx *= f; cy *= f; z = nz; tiles.replaceChildren(); draw();
