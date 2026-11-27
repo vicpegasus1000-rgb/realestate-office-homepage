@@ -3,7 +3,8 @@
   "cleanUrls": true,
   "functions": {
     "api/market.py": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "api/_snapshot.json"
     },
     "api/inquiry.py": {
       "maxDuration": 15

@@ -47,6 +47,7 @@ MARKET_LAWD = "11740"            # 서울 강동구
 MARKET_APT = "올림픽파크포레온"   # 관리 단지
 MARKET_MONTHS = 12
 MARKET_TTL = 6 * 3600            # 6시간마다 새로 가져옴
+SNAPSHOT = Path(__file__).with_name("_snapshot.json")  # 실제 거래 저장본 (공개 자료). 키가 없거나 국토부 장애 때 보여 줌
 MARKET_CACHE = (Path("/tmp") if ON_VERCEL else ROOT) / "market_cache.json"
 _market = {"at": 0.0, "data": None, "fail_at": 0.0}
 MARKET_BACKOFF = 15 * 60          # 국토부 조회가 실패하면 15분 동안 다시 묻지 않음 (키 호출 한도 보호)
@@ -199,6 +200,13 @@ def get_market():
         if MARKET_CACHE.exists():
             try:
                 data = json.loads(MARKET_CACHE.read_text(encoding="utf-8"))
+                _market.update(at=time.time() - MARKET_TTL + 600, data=data)  # 10분 뒤 다시 시도
+                return data
+            except ValueError:
+                pass
+        if SNAPSHOT.exists():
+            try:
+                data = json.loads(SNAPSHOT.read_text(encoding="utf-8"))
                 _market.update(at=time.time() - MARKET_TTL + 600, data=data)  # 10분 뒤 다시 시도
                 return data
             except ValueError:

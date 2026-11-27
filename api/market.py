@@ -20,7 +20,10 @@ class handler(BaseHTTPRequestHandler):
         data = _core.get_market()
         if data:
             # Vercel 앞단(CDN)이 6시간 저장 → 국토부에는 거의 안 물음
-            _core.send_json(self, 200, data, "public, max-age=600, s-maxage=21600, stale-while-revalidate=86400")
+            if data.get("snapshot"):  # 저장본이면 짧게 저장 → 키를 넣거나 국토부가 살아나면 곧 새 자료로
+                _core.send_json(self, 200, data, "public, max-age=60, s-maxage=600")
+            else:
+                _core.send_json(self, 200, data, "public, max-age=600, s-maxage=21600, stale-while-revalidate=86400")
         else:
             _core.send_json(self, 503, {"error": "실거래가 자료가 아직 없습니다."})
 
