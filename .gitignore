@@ -1,0 +1,13 @@
+# 비밀 (인증키·봇 토큰) — 절대 올리지 않음
+market_config.json
+telegram_config.json
+data_go_kr.json
+*.env
+.env*
+# 서버가 자동으로 만드는 파일
+market_cache.json
+__pycache__/
+*.pyc
+# 개인 메모 (사용자 성향 등) — 공개하지 않음
+pegasus_skill_*
+*.skill

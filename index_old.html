@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ★ 사무소 이름 바꾸기 (1/3): 브라우저 탭 제목 -->
+<title>○○공인중개사사무소 (예시)</title>
+<style>
+  /* ★ 색 바꾸기: 아래 값만 고치면 전체 색이 바뀝니다 */
+  :root {
+    --main: #1f7f81;      /* 제목 띠·버튼 (차분한 청록) */
+    --main-dark: #17605f; /* 버튼 눌렀을 때 */
+    --bg: #e3f1f0;        /* 연한 청록 바탕 */
+    --card: #ffffff;      /* 카드 */
+    --text: #1f2d2d;
+    --sub: #5b6b6b;
+    --line: #cfe3e1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+  body { font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+         color: var(--text); background: var(--bg); line-height: 1.6; word-break: keep-all; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  /* 상단 메뉴 */
+  header { position: sticky; top: 0; z-index: 10; background: var(--main); color: #fff;
+           box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .logo { font-weight: 700; font-size: 19px; }
+  nav a { margin-left: 22px; font-size: 15px; opacity: .92; }
+  nav a:hover { opacity: 1; text-decoration: underline; }
+  .menu-btn { display: none; background: none; border: 0; color: #fff; font-size: 26px; cursor: pointer; }
+
+  /* 메인 화면 */
+  .hero { background: linear-gradient(135deg, var(--main) 0%, #2f9a97 100%); color: #fff;
+          padding: 80px 0 90px; text-align: center; }
+  .hero .badge { display: inline-block; background: rgba(255,255,255,.18); padding: 4px 14px;
+                 border-radius: 20px; font-size: 14px; margin-bottom: 18px; }
+  .hero h1 { font-size: 38px; line-height: 1.35; margin-bottom: 16px; }
+  .hero p { font-size: 17px; opacity: .93; margin-bottom: 30px; }
+  .btn { display: inline-block; padding: 13px 28px; border-radius: 8px; font-weight: 700;
+         font-size: 16px; border: 0; cursor: pointer; }
+  .btn-white { background: #fff; color: var(--main); }
+  .btn-line { border: 2px solid #fff; color: #fff; margin-left: 8px; }
+  .btn-main { background: var(--main); color: #fff; width: 100%; }
+  .btn-main:hover { background: var(--main-dark); }
+
+  section { padding: 70px 0; }
+  .sec-title { text-align: center; margin-bottom: 40px; }
+  .sec-title h2 { font-size: 28px; color: var(--main); }
+  .sec-title p { color: var(--sub); margin-top: 6px; }
+
+  .card { background: var(--card); border-radius: 14px; box-shadow: 0 2px 10px rgba(31,127,129,.08); }
+
+  /* 소개 */
+  .about-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; }
+  .about-text { padding: 32px; }
+  .about-text h3 { font-size: 21px; margin-bottom: 12px; }
+  .about-text p { color: var(--sub); margin-bottom: 12px; }
+  .sign { margin-top: 18px; font-weight: 700; }
+  .points { display: grid; gap: 14px; }
+  .point { padding: 20px 22px; display: flex; gap: 14px; align-items: flex-start; }
+  .point .ico { font-size: 26px; line-height: 1; }
+  .point b { display: block; margin-bottom: 2px; }
+  .point span { color: var(--sub); font-size: 14px; }
+
+  /* 매물 */
+  .filter { display: flex; justify-content: center; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .filter button { padding: 8px 18px; border-radius: 20px; border: 1px solid var(--main);
+                   background: #fff; color: var(--main); font-size: 14px; cursor: pointer; }
+  .filter button.on { background: var(--main); color: #fff; }
+  .listing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .listing { overflow: hidden; display: flex; flex-direction: column; }
+  .photo { height: 160px; display: flex; align-items: center; justify-content: center;
+           font-size: 52px; position: relative; }
+  .photo .tag { position: absolute; top: 12px; left: 12px; background: var(--main); color: #fff;
+                font-size: 12px; padding: 3px 10px; border-radius: 12px; }
+  .photo .deal { position: absolute; top: 12px; right: 12px; background: #fff; color: var(--main);
+                 font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px; }
+  .apt { background: #d4ecea; } .multi { background: #e6efe0; } .shop { background: #f3ebdc; }
+  .office { background: #e3e7f1; } .land { background: #ecf1dc; } .villa { background: #f1e3e8; }
+  .info { padding: 18px 20px 20px; flex: 1; }
+  .info h3 { font-size: 17px; margin-bottom: 4px; }
+  .info .addr { color: var(--sub); font-size: 13px; margin-bottom: 10px; }
+  .info .price { font-size: 20px; font-weight: 700; color: var(--main); margin-bottom: 8px; }
+  .info ul { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+  .info li { background: var(--bg); font-size: 12px; padding: 3px 9px; border-radius: 6px; color: #355; }
+  .note { text-align: center; color: var(--sub); font-size: 13px; margin-top: 22px; }
+
+  /* 상담 문의 */
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  form.card { padding: 30px; }
+  label { display: block; font-weight: 700; font-size: 14px; margin: 14px 0 6px; }
+  label:first-child { margin-top: 0; }
+  input, select, textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--line);
+                            border-radius: 8px; font: inherit; font-size: 15px; background: #fbfefe; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--main); border-color: transparent; }
+  textarea { height: 120px; resize: vertical; }
+  .agree { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--sub); margin: 16px 0 18px; }
+  .agree input { width: auto; }
+  .done { display: none; margin-top: 14px; padding: 12px; background: var(--bg); border-radius: 8px;
+          color: var(--main); font-weight: 700; text-align: center; }
+  .side { padding: 30px; }
+  .side h3 { font-size: 19px; margin-bottom: 14px; }
+  .side .tel { font-size: 28px; font-weight: 700; color: var(--main); margin: 4px 0 14px; }
+  .side p { color: var(--sub); margin-bottom: 8px; }
+
+  /* 오시는 길 */
+  .map-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; }
+  .map { min-height: 300px; display: flex; align-items: center; justify-content: center;
+         flex-direction: column; color: var(--sub); text-align: center; padding: 20px;
+         background: repeating-linear-gradient(45deg, #f5fbfa, #f5fbfa 12px, #eef7f6 12px, #eef7f6 24px); }
+  .map .pin { font-size: 46px; }
+  .addr-box { padding: 28px; }
+  .addr-box dl { display: grid; grid-template-columns: 80px 1fr; row-gap: 12px; }
+  .addr-box dt { font-weight: 700; color: var(--main); }
+  .addr-box dd { color: var(--text); }
+
+  footer { background: #1b3b3b; color: #b9cccc; font-size: 13px; padding: 30px 0; text-align: center; line-height: 1.9; }
+  footer b { color: #fff; }
+
+  /* 휴대폰 화면 */
+  .call-bar { display: none; }
+  @media (max-width: 860px) {
+    .about-grid, .contact-grid, .map-grid { grid-template-columns: 1fr; }
+    .listing-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    nav { display: none; position: absolute; top: 60px; left: 0; right: 0; background: var(--main);
+          flex-direction: column; padding: 8px 20px 16px; }
+    nav.open { display: flex; }
+    nav a { margin: 0; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.15); }
+    .menu-btn { display: block; }
+    .hero { padding: 56px 0 64px; }
+    .hero h1 { font-size: 27px; }
+    .hero p { font-size: 15px; }
+    .btn-line { margin: 10px 0 0; }
+    .hero .btn { display: block; max-width: 260px; margin-left: auto; margin-right: auto; }
+    .hero .btn-line { margin-top: 10px; }
+    section { padding: 50px 0; }
+    .sec-title h2 { font-size: 23px; }
+    .listing-grid { grid-template-columns: 1fr; }
+    .about-text, form.card, .side, .addr-box { padding: 22px; }
+    body { padding-bottom: 60px; }
+    .call-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; }
+    .call-bar a { flex: 1; text-align: center; padding: 16px 0; color: #fff; font-weight: 700; }
+    .call-bar a:first-child { background: var(--main); }
+    .call-bar a:last-child { background: #2a3d3d; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+  ★ 바꿀 곳 안내 (예시 값을 실제 정보로 고치세요)
+   · 사무소 이름: "○○공인중개사사무소"  → 모두 찾아 바꾸기
+   · 대표자:     "홍길동"
+   · 전화번호:   "02-000-0000", "010-0000-0000"
+   · 주소:       "○○시 ○○구 ○○로 123, 예시빌딩 1층"
+   · 등록번호:   "제00000-0000-00000호",  사업자번호: "000-00-00000"
+   · 색:         위쪽 <style> 맨 위 :root 의 색 값
+   · 매물:       아래 "추천 매물" 카드 (class="listing")
+============================================================ -->
+
+<header>
+  <div class="wrap">
+    <a href="#home" class="logo">🏠 ○○공인중개사사무소</a>
+    <button class="menu-btn" aria-label="메뉴" onclick="document.querySelector('nav').classList.toggle('open')">☰</button>
+    <nav>
+      <a href="#about">사무소 소개</a>
+      <a href="#listings">추천 매물</a>
+      <a href="#contact">상담 문의</a>
+      <a href="#map">오시는 길</a>
+    </nav>
+  </div>
+</header>
+
+<!-- 메인 화면 -->
+<div class="hero" id="home">
+  <div class="wrap">
+    <span class="badge">○○동 지역 전문 · 상담 무료</span>
+    <h1>우리 동네 집 이야기,<br>믿을 수 있는 이웃에게 맡기세요</h1>
+    <p>아파트 · 다가구 · 상가 · 토지까지<br>매매 · 전세 · 월세를 꼼꼼하고 정직하게 중개합니다.</p>
+    <a href="#listings" class="btn btn-white">추천 매물 보기</a>
+    <a href="#contact" class="btn btn-line">상담 신청하기</a>
+  </div>
+</div>
+
+<!-- 사무소 소개 -->
+<section id="about">
+  <div class="wrap">
+    <div class="sec-title"><h2>사무소 소개</h2><p>오래 머무를 집, 오래 남을 거래</p></div>
+    <div class="about-grid">
+      <div class="card about-text">
+        <h3>안녕하세요, 대표 공인중개사 홍길동입니다.</h3>
+        <p>○○동에서 오랫동안 주민 여러분의 내 집 마련과 자산 관리를 함께해 왔습니다.
+           매물을 소개하는 데서 그치지 않고, 권리관계 확인부터 계약·잔금·입주까지 끝까지 책임지겠습니다.</p>
+        <p>집을 사고파는 일은 인생에서 몇 번 없는 큰 결정입니다. 좋은 점만이 아니라 아쉬운 점도
+           솔직하게 말씀드리는 중개사가 되겠습니다.</p>
+        <p class="sign">○○공인중개사사무소 대표 홍길동 드림</p>
+      </div>
+      <div class="points">
+        <div class="card point"><div class="ico">📋</div><div><b>꼼꼼한 권리 분석</b><span>등기부등본·건축물대장 확인으로 안전한 계약</span></div></div>
+        <div class="card point"><div class="ico">📍</div><div><b>지역 전문</b><span>학군·교통·개발 소식까지 동네를 잘 아는 중개</span></div></div>
+        <div class="card point"><div class="ico">💬</div><div><b>투명한 상담</b><span>중개보수와 시세를 미리, 정확하게 안내</span></div></div>
+        <div class="card point"><div class="ico">🤝</div><div><b>계약 후에도 함께</b><span>입주·임대 관리 문의도 언제든 편하게</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 추천 매물 -->
+<section id="listings" style="background:#f3f9f8">
+  <div class="wrap">
+    <div class="sec-title"><h2>추천 매물</h2><p>지금 바로 상담 가능한 매물입니다</p></div>
+    <div class="filter">
+      <button class="on" data-f="all">전체</button>
+      <button data-f="apt">아파트</button>
+      <button data-f="multi">다가구·빌라</button>
+      <button data-f="shop">상가·사무실</button>
+      <button data-f="land">토지</button>
+    </div>
+    <div class="listing-grid">
+      <div class="card listing" data-t="apt">
+        <div class="photo apt">🏢<span class="tag">아파트</span><span class="deal">매매</span></div>
+        <div class="info"><h3>○○아파트 84㎡ 남향</h3><div class="addr">○○구 ○○동 · 15층 중 9층</div>
+          <div class="price">매매 0억 0,000만</div><ul><li>방3·욕실2</li><li>역 도보 5분</li><li>올수리</li></ul></div>
+      </div>
+      <div class="card listing" data-t="apt">
+        <div class="photo apt">🏢<span class="tag">아파트</span><span class="deal">전세</span></div>
+        <div class="info"><h3>○○아파트 59㎡ 신축</h3><div class="addr">○○구 ○○동 · 25층 중 12층</div>
+          <div class="price">전세 0억 0,000만</div><ul><li>방3·욕실2</li><li>초등학교 인접</li><li>즉시 입주</li></ul></div>
+      </div>
+      <div class="card listing" data-t="multi">
+        <div class="photo multi">🏘️<span class="tag">다가구</span><span class="deal">매매</span></div>
+        <div class="info"><h3>수익형 다가구 주택</h3><div class="addr">○○구 ○○동 · 지상 4층</div>
+          <div class="price">매매 00억 0,000만</div><ul><li>총 8세대</li><li>월 임대수익 예시</li><li>주인세대 포함</li></ul></div>
+      </div>
+      <div class="card listing" data-t="shop">
+        <div class="photo shop">🏪<span class="tag">상가</span><span class="deal">월세</span></div>
+        <div class="info"><h3>대로변 1층 상가</h3><div class="addr">○○구 ○○동 · 전용 33㎡</div>
+          <div class="price">보증금 0,000 / 월 000만</div><ul><li>유동인구 많음</li><li>무권리</li><li>업종 상담</li></ul></div>
+      </div>
+      <div class="card listing" data-t="shop">
+        <div class="photo office">🏬<span class="tag">사무실</span><span class="deal">월세</span></div>
+        <div class="info"><h3>역세권 소형 사무실</h3><div class="addr">○○구 ○○동 · 전용 50㎡</div>
+          <div class="price">보증금 0,000 / 월 00만</div><ul><li>주차 가능</li><li>엘리베이터</li><li>즉시 입주</li></ul></div>
+      </div>
+      <div class="card listing" data-t="land">
+        <div class="photo land">🌳<span class="tag">토지</span><span class="deal">매매</span></div>
+        <div class="info"><h3>도로 접한 나대지</h3><div class="addr">○○군 ○○면 · 330㎡</div>
+          <div class="price">매매 0억 0,000만</div><ul><li>2차선 도로 접함</li><li>건축 가능</li><li>전원주택 부지</li></ul></div>
+      </div>
+    </div>
+    <p class="note">※ 위 매물은 화면 예시입니다. 실제 매물·가격은 상담으로 확인해 주세요.</p>
+  </div>
+</section>
+
+<!-- 상담 문의 -->
+<section id="contact">
+  <div class="wrap">
+    <div class="sec-title"><h2>상담 문의</h2><p>남겨 주시면 빠르게 연락드리겠습니다</p></div>
+    <div class="contact-grid">
+      <form class="card" id="askForm">
+        <label for="nm">이름</label>
+        <input id="nm" required placeholder="예) 김고객">
+        <label for="ph">연락처</label>
+        <input id="ph" type="tel" required placeholder="예) 010-1234-5678">
+        <label for="kind">관심 매물</label>
+        <select id="kind"><option>아파트</option><option>다가구·빌라</option><option>상가·사무실</option><option>토지</option><option>기타</option></select>
+        <label for="msg">문의 내용</label>
+        <textarea id="msg" required placeholder="원하시는 지역, 예산, 입주 시기 등을 적어 주세요"></textarea>
+        <div class="agree"><input type="checkbox" id="ok" required><label for="ok" style="margin:0;font-weight:400">개인정보 수집·이용에 동의합니다 (상담 목적)</label></div>
+        <button class="btn btn-main" type="submit">상담 신청하기</button>
+        <div class="done" id="done">✅ 신청이 접수되었습니다. (시안 화면이라 실제로 전송되지는 않습니다)</div>
+      </form>
+      <div class="card side">
+        <h3>전화 상담</h3>
+        <p>바로 통화를 원하시면 편하게 전화 주세요.</p>
+        <div class="tel">02-000-0000</div>
+        <p>📱 휴대폰 010-0000-0000</p>
+        <p>🕘 평일 09:00 ~ 19:00</p>
+        <p>🕘 토요일 10:00 ~ 17:00 (일·공휴일 예약 상담)</p>
+        <p>💬 방문 상담은 미리 연락 주시면 기다리지 않으셔도 됩니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 오시는 길 -->
+<section id="map" style="background:#f3f9f8">
+  <div class="wrap">
+    <div class="sec-title"><h2>오시는 길</h2><p>방문 전 전화 주시면 더 친절히 안내해 드립니다</p></div>
+    <div class="map-grid">
+      <div class="card map">
+        <div class="pin">📍</div>
+        <b>지도 들어갈 자리</b>
+        <span style="font-size:13px">실제 주소가 정해지면 카카오맵·네이버지도를 넣습니다</span>
+      </div>
+      <div class="card addr-box">
+        <dl>
+          <dt>주소</dt><dd>○○시 ○○구 ○○로 123, 예시빌딩 1층</dd>
+          <dt>지하철</dt><dd>○○역 0번 출구 도보 3분</dd>
+          <dt>버스</dt><dd>○○정류장 하차 (000번, 0000번)</dd>
+          <dt>주차</dt><dd>건물 뒤편 주차장 이용 가능</dd>
+          <dt>전화</dt><dd>02-000-0000</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <b>○○공인중개사사무소</b><br>
+  대표 홍길동 · 주소 ○○시 ○○구 ○○로 123, 예시빌딩 1층 · 전화 02-000-0000<br>
+  중개사무소 등록번호 제00000-0000-00000호 · 사업자등록번호 000-00-00000<br>
+  © 2026 ○○공인중개사사무소 (시안)
+</footer>
+
+<div class="call-bar">
+  <a href="tel:020000000">📞 전화 상담</a>
+  <a href="#contact">✏️ 문의 남기기</a>
+</div>
+
+<script>
+  // 매물 분류 버튼
+  document.querySelectorAll('.filter button').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('.filter button').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      var f = b.dataset.f;
+      document.querySelectorAll('.listing').forEach(function (c) {
+        c.style.display = (f === 'all' || c.dataset.t === f) ? '' : 'none';
+      });
+    };
+  });
+  // 상담 폼: 실제 전송 없이 안내만 표시
+  document.getElementById('askForm').onsubmit = function (e) {
+    e.preventDefault();
+    document.getElementById('done').style.display = 'block';
+    this.reset();
+  };
+  // 휴대폰 메뉴: 누르면 닫기
+  document.querySelectorAll('nav a').forEach(function (a) {
+    a.onclick = function () { document.querySelector('nav').classList.remove('open'); };
+  });
+</script>
+</body>
+</html>
